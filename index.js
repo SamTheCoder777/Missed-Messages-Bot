@@ -7,6 +7,7 @@ const express = require("express");
 const app = express();
 
 const config = require("./config.json");
+var opus = require('opusscript');
 
 app.get("/", (request, response) => {
   console.log(Date.now() + " Ping Received");
@@ -20,6 +21,7 @@ http.get("http;//$process.env.PROJECT_DOMAIN}.glitch.me/");
 const Discord = require("discord.js");
 const client = new Discord.Client();
 const delay = (msec) => new Promise((resolve) => setTimeout(resolve, msec));
+
 
 client.on("ready", () => {
   console.log("I am Online\nI am Online");
@@ -44,11 +46,41 @@ client.on("message", async message => {
   const args = message.content.slice(config.prefix.length).trim().split(/ +/g);
   const command = args.shift().toLowerCase();
   let messageArray = message.content.split(" ");
+  if(command === "mute"){
+    const role = message.guild.roles.find(role => role.name === "Muted");
+    let member = message.mentions.members.first();
+    if(!message.member.roles.some(r=>["Admin"].includes(r.name)) )
+      return message.reply("Sorry, you don't have permissions to use this!");
+
+    if(!member)
+      return message.reply("Please mention a valid member of this server");
+    
+    let reason = args.slice(1).join(' ');
+    if(!reason) reason = "No reason provided";
+    
+    member.addRole(role);
+    return message.reply(`${member.user} has been muted by ${message.author} because: ${reason}`)
+  }
+  if(command === "unmute"){
+    const role = message.guild.roles.find(role => role.name === "Muted");
+    let member = message.mentions.members.first();
+    
+        if(!message.member.roles.some(r=>["Admin"].includes(r.name)) )
+      return message.reply("Sorry, you don't have permissions to use this!");
+
+    if(!member)
+      return message.reply("Please mention a valid member of this server");
+    
+    member.removeRole(role);
+    return message.reply(`${member.user} has been unmuted by ${message.author}. Please be nice next time!`)
+  
+  }
+  
 if(command ==="bd"){
   if(message.member.roles.some(r=>["Admin"].includes(r.name)) ){
         let channel = message.mentions.channels.first();
         let announcement = args.slice(1).join(" ");
-
+        message.delete(10);
         channel.send(announcement);
   }
 }
@@ -82,7 +114,7 @@ if(command ==="bd"){
     // Now, time for a swift kick in the nuts!
     await member.kick(reason)
       .catch(error => message.reply(`Sorry ${message.author} I couldn't kick because of : ${error}`));
-    message.reply(`${member.user.tag} has been kicked by ${message.author.tag} because: ${reason}`);
+    message.reply(`${member.user} has been kicked by ${message.author} because: ${reason}`);
 
   }
      if (message.author === client.user) return;
@@ -113,7 +145,7 @@ if(command ==="bd"){
       
     await member.ban(reason)
       .catch(error => message.reply(`Sorry ${message.author} I couldn't ban because of : ${error}`));
-    message.reply(`${member.user.tag} has been banned by ${message.author.tag} because: ${reason}`);
+    message.reply(`${member.user} has been banned by ${message.author} because: ${reason}`);
 
   }
 
@@ -124,21 +156,21 @@ if(command ==="bd"){
     m.edit(`Pong! Latency is ${m.createdTimestamp - message.createdTimestamp}ms. API Latency is ${Math.round(client.ping)}ms`);
   }
     if (message.content.startsWith(prefix + "help")) {
-   let embed = new Discord.RichEmbed()
+   let embed = new Discord.MessageEmbed()
    .setTitle('Help Page:')
    .setDescription('``ping``: returns with ping.\n``badgame``: returns with a trash game')
   .setColor('#275BF0')
-  let fun = new Discord.RichEmbed()
+  let fun = new Discord.MessageEmbed()
    .setTitle('Fun')
    .setDescription('``5amgamer``(without prefix) only for gamers)\n``Bevan``(without prefix) only for sad ppl)\n``Jello``(without prefix) pls do this manytimes as possible')
   .setColor('#275BF0')
-    let mod = new Discord.RichEmbed()
+    let mod = new Discord.MessageEmbed()
    .setTitle('Admin Commands')
    .setDescription('``kick <reason>``kicks the user with the provided reason\n``ban <reason>``bans the usser with the provided reason\n``bd <#channel> <message>``broadcasts to the the channel')
   .setColor('#275BF0')
-   message.channel.sendEmbed(embed)
-  message.channel.sendEmbed(fun)
-  message.channel.sendEmbed(mod)
+   message.channel.send(embed)
+  message.channel.send(fun)
+  message.channel.send(mod)
   }
     if(message.content.startsWith("5amgamer")){
       return message.reply("5amgamer is an awesome gamer!!!");
@@ -173,26 +205,42 @@ if(command ==="bd"){
     if(!member) 
       member = message.author;
     
-    let embed = new Discord.RichEmbed()
-  .setImage(member.avatarURL)
+    let embed = new Discord.MessageEmbed()
+  .setImage(member.avatarURL())
   .setColor('#275BF0')
     message.channel.send(embed)
   }
 });
 //voice chat thing starats here
+
 client.on('message', async message => {
   // Voice only works in guilds, if the message does not come from a guild,
   // we ignore it
+  const ytdl = require("ytdl-core");
   if (!message.guild) return;
   const args = message.content.slice(config.prefix.length).trim().split(/ +/g);
   const command = args.shift().toLowerCase();
+  const fs = require('fs');
   if (command === "join") {
     // Only try to join the sender's voice channel if they are in one themselves
     if (message.member.voice.channel) {
       const connection = await message.member.voice.channel.join();
-    } else {
+      // Create a dispatcher
+
+
+connection.play(ytdl(
+  'https://www.youtube.com/watch?v=P-uhgIzHYYo',
+  { filter: 'audioonly' }));
+
+
+    if(!message.member.voice.channel){
       message.reply('You need to join a voice channel first!');
     }
+    
   }
+
+  //voice thing
+}
 });
+
 client.login(process.env.TOKEN);

@@ -1,3 +1,5 @@
 { 
-  "prefix" : "*"
+  "prefix" : "*",
+  "token" : "process.env.TOKEN",
+  "api" : "process.env.API"
 }
